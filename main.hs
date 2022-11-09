@@ -3,8 +3,8 @@ boolToString True = "V"
 boolToString False = "F"
 
 boolToBranch:: Bool -> String
-boolToBranch True = ";"
-boolToBranch False = "|"
+boolToBranch True = "|"
+boolToBranch False = ";"
 
 --Return values [before, ifRamify, after]
 nextStep:: String -> Bool -> [Bool]
@@ -39,7 +39,7 @@ parseExpression exp separator
 
 branch:: [String] -> Bool -> String
 branch exp value
-    | length exp == 1 = exp !! 0 ++ ":" ++ boolToString ( head(exp !! 0) == '~')
+    | length exp == 1 = exp !! 0 ++ ":" ++ boolToString (value)
     | otherwise = boolToString value ++ ":(" ++branch (parseExpression (exp !! 0) (operator (exp !! 0) 0 0)) ((nextStep (exp!!1) value) !! 0) ++ boolToBranch ((nextStep (exp!!1) value)!!1) ++ branch (parseExpression (exp !! 2) (operator (exp !! 2) 0 0)) ((nextStep (exp!!1) value)!! 2) ++ ")"
 
 
@@ -49,8 +49,10 @@ main = do
     -- let n = read input :: StringIO
     -- let n = "(p∨(q∧r))→((p∨q)∧(p∨r))"
     -- let n = "p∨r"
+    let strteste = "(p∨(q∧r))→((p∨q)∧(p∨r))"
     let str = "(r∧~p)∨(~p)"
-    let initial = parseExpression str (operator str 0 0)
+    let auxstr = strteste
+    let initial = parseExpression auxstr (operator auxstr 0 0)
     print (branch (initial) False)
 
 --ghc main.hs
