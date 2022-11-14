@@ -66,6 +66,7 @@ formulafy1:: Formula -> [Bool] -> [Formula]
 formulafy1 form nextstep = [(formulafy2 (leftf form) (nextstep !! 0)), (formulafy2 (rightf form) (nextstep !! 2))]
 
 
+
 aplicaRamo:: Node -> [Formula] -> Node
 aplicaRamo node forms
     | end node = Node
@@ -80,8 +81,6 @@ aplicaRamo node forms
         (aplicaRamo (right node) forms)
         
 
--- formulaN = ((formulas node) !! index)
--- nextStep_value = nextStep (operator formulaN) (value formulaN)
 branch:: Node -> Int -> Node
 branch node index
     | index >= length (formulas node) = Node 
@@ -118,6 +117,55 @@ showTree node depth
         | end node = concatFormulas (formulas node) (depth)
         | otherwise = (showTree (left node) (depth+1)) ++ concatFormulas (formulas node) (depth) ++ (showTree (right node) (depth+1))
 
+
+boolToTilda:: Bool -> String
+boolToTilda True = ""
+boolToTilda False = "~"
+
+gatherAtomic:: [Formula] -> Int -> [Formula]
+gatherAtomic forms index
+    | index >= length forms = forms
+    | (op (forms !! 0)) == "" = gatherAtomic (forms) (index+1)
+    | otherwise = gatherAtomic (tail forms) (index)
+
+concatAtomic:: [Formula] -> String
+concatAtomic [] = ""
+concatAtomic forms = (boolToTilda(value(forms !! 0)))++(leftf(forms !! 0)) ++ "," ++ concatAtomic(tail forms)
+concatAtomic forms = (boolToTilda(value(forms !! 0)))++(leftf(forms !! 0)) ++ "," ++ concatAtomic(tail forms)
+
+atomic:: Formula -> Formula
+atomic form
+    | length (leftf form) == 1 = form
+    | otherwise = Formula (tail (leftf form)) ("") ("") (not (value form))
+
+opposite:: Formula -> Formula -> Bool
+opposite form1 form2
+    | leftf form1 /= leftf form2 = False
+    | value form1 == value form2 = False
+    | otherwise = True
+
+contradictory:: [Formula] -> Int -> Bool
+contradictory [] x = False
+contradictory forms x
+    | x >= length forms = contradictory (tail forms) 1
+    | opposite (atomic(forms !! 0)) (atomic(forms !! x)) == True = True
+    | otherwise = contradictory forms (x+1)
+
+validation:: Node -> [Formula] -> String
+validation node atomicForms
+    | end node && (contradictory (atomicForms ++ (gatherAtomic (formulas node) 0)) (1)) == True = "Counter Model: " ++ concatAtomic(atomicForms ++ (gatherAtomic (formulas node) 0))
+    | end node = "Invalid!"
+    | validation 
+        (left node)
+        (atomicForms ++ (gatherAtomic (formulas node) 0))
+        /= "Invalid!" = validation (left node) (atomicForms ++ (gatherAtomic (formulas node) 0))
+    | validation(right node)
+        (atomicForms ++ (gatherAtomic (formulas node) 0)) 
+        /= "Invalid!" = validation (right node) (atomicForms ++ (gatherAtomic (formulas node) 0))
+    | otherwise = "Invalid!"
+
+
+
 main :: IO()
 main = do
     -- putStrLn "frase "
@@ -131,5 +179,7 @@ main = do
     let parsed = parseExpression (auxstr) (operator (auxstr) 0 0)
     let initial = Node ([Formula (parsed !! 0) (parsed !! 1) (parsed !! 2) (False)]) (True) (Node{}) (Node{})
     let tree = branch (initial) 0
+    let valid = validation (tree) ([])
+    putStr (valid ++ "\n")
     putStr (showTree tree 0)
 
