@@ -189,3 +189,6 @@ main = do
     putStrLn (valid ++ "\n")
     putStr (showTree tree 0)
 
+-- Compilador Haskell: The Glorious Glasgow Haskell Compilation System, version 9.4.2
+-- compilar: ghc main.hs
+-- executar: main.exe
