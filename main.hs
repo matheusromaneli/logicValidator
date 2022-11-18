@@ -171,18 +171,21 @@ validation node atomicForms
 
 main :: IO()
 main = do
-    -- putStrLn "OBS: Use parenteses entre formulas e operadores (ao menos que sejam atomicos)"
-    -- putStrLn "Insira sua formula: "
-    -- input <- getLine
-    -- let n = read input :: String
-
     let strteste = "(p|(q&r))>((p|q)&(p|r))"
     let str = "(r&~p)|(~p)"
-    let auxstr = strteste
+    putStrLn ("Ex.1:" ++ strteste)
+    putStrLn ("Ex.2:" ++ str)
+    putStrLn "OBS: Use parenteses entre formulas e operadores (ao menos que sejam atomicos)\n"
+    putStrLn "Use os operadores: AND(&), OR(|), IFTHEN(>) e NOT(~)"
+    putStrLn "Insira sua formula: "
+    input <- getLine
+    let n = input
+    let auxstr = n
     let parsed = parseExpression (auxstr) (operator (auxstr) 0 0)
     let initial = Node ([Formula (parsed !! 0) (parsed !! 1) (parsed !! 2) (False)]) (True) (Node{}) (Node{})
     let tree = branch (initial) 0
     let valid = validation (tree) ([])
-    putStr (valid ++ "\n")
+    putStrLn ""
+    putStrLn (valid ++ "\n")
     putStr (showTree tree 0)
 
