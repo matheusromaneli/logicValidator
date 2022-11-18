@@ -32,6 +32,8 @@ nextStep "∨" True = [True, True, True]
 nextStep "∨" False= [False, False, False]
 nextStep "→" True = [False, True, True]
 nextStep "→" False= [True, False, False]
+nextStep ">" True = [False, True, True]
+nextStep ">" False= [True, False, False]
 
 --retorna qual indice do operador atual (atualmente com base nos parenteses)
 -- expressao indice profundidade 
@@ -39,7 +41,7 @@ operator:: String -> Int -> Int -> Int
 operator exp index depth
     | index >= length exp && (head exp) == '(' && (last exp) == ')' = operator (removeParentesis exp) 0 0
     | index >= length exp = index-1
-    | depth == 0 && ((exp !! index == '&') || (exp !! index == '|') || (exp !! index == '∧') || (exp !! index == '∨') || (exp !! index == '→')) = index
+    | depth == 0 && ((exp !! index == '&') || (exp !! index == '|')|| (exp !! index == '>') || (exp !! index == '∧') || (exp !! index == '∨') || (exp !! index == '→')) = index
     | exp !! index == '(' = operator exp (index+1) (depth+1)
     | exp !! index == ')' = operator exp (index+1) (depth-1)
     | otherwise = operator exp (index+1) depth
@@ -153,27 +155,28 @@ contradictory forms x
 
 validation:: Node -> [Formula] -> String
 validation node atomicForms
-    | end node && (contradictory (atomicForms ++ (gatherAtomic (formulas node) 0)) (1)) == True = "Counter Model: " ++ concatAtomic(atomicForms ++ (gatherAtomic (formulas node) 0))
-    | end node = "Invalid!"
+    | end node && (contradictory (atomicForms ++ (gatherAtomic (formulas node) 0)) (1)) == True = "Valid!"
+    | end node = "Counter Model: " ++ concatAtomic(atomicForms ++ (gatherAtomic (formulas node) 0))
     | validation 
         (left node)
         (atomicForms ++ (gatherAtomic (formulas node) 0))
-        /= "Invalid!" = validation (left node) (atomicForms ++ (gatherAtomic (formulas node) 0))
-    | validation(right node)
+        == "Valid!" = validation (left node) (atomicForms ++ (gatherAtomic (formulas node) 0))
+    | validation
+        (right node)
         (atomicForms ++ (gatherAtomic (formulas node) 0)) 
-        /= "Invalid!" = validation (right node) (atomicForms ++ (gatherAtomic (formulas node) 0))
-    | otherwise = "Invalid!"
+        == "Valid!" = validation (right node) (atomicForms ++ (gatherAtomic (formulas node) 0))
+    | otherwise = "Counter Model: " ++ concatAtomic(atomicForms ++ (gatherAtomic (formulas node) 0))
 
 
 
 main :: IO()
 main = do
-    -- putStrLn "frase "
+    -- putStrLn "OBS: Use parenteses entre formulas e operadores (ao menos que sejam atomicos)"
+    -- putStrLn "Insira sua formula: "
     -- input <- getLine
-    -- let n = read input :: StringIO
-    -- let n = "(p∨(q∧r))→((p∨q)∧(p∨r))"
-    -- let n = "p∨r"
-    let strteste = "(p∨(q∧r))→((p∨q)∧(p∨r))"
+    -- let n = read input :: String
+
+    let strteste = "(p|(q&r))>((p|q)&(p|r))"
     let str = "(r&~p)|(~p)"
     let auxstr = strteste
     let parsed = parseExpression (auxstr) (operator (auxstr) 0 0)
